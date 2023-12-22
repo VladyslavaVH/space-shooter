@@ -30,6 +30,7 @@ export default class CountDown extends Text {
 
     reset() {
         this.currentTime = this.startTime;
+        this.text = this.currentTime;
     }
     
     getCurrentTime() {

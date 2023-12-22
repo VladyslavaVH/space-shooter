@@ -20,3 +20,5 @@ export const POINTS = {
     LEFT: 0,
     RIGHT: 1280
 };
+
+export function getRandomInRange(min, max) { return Math.floor(Math.random() * (max - min)) + min; };

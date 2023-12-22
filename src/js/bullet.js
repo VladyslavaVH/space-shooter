@@ -1,8 +1,11 @@
 import { Graphics } from "pixi.js";
+import { POINTS } from "./utils";
 
 export default class Bullet extends Graphics {
-    constructor(x, y) {
+    constructor(x, y, speed = 15) {
         super();
+        this.speed = speed;
+        this.shootingObject = null;
 
         this.beginFill('#fcfedb');
         this.drawCircle(x, y, 7);
@@ -10,12 +13,19 @@ export default class Bullet extends Graphics {
         this.position.set(x, y);
         this.endFill();
 
+        this.isBullet = true;
         this.isDead = false;
         
         return this;
     }
 
-    shoot() {
+    setShootingObject(obj) {
+        if (obj?.isGameObject) {
+            this.shootingObject = obj;
+        }
+    }
+
+    shootUp() {
         if (this.y <= 0) {
             this.isDead = true;
         } else {
@@ -23,26 +33,42 @@ export default class Bullet extends Graphics {
             
             if (!isCollision) {
                 this.up();
-            } 
-            // else {
-            //     this.isDead = true;
-            // }
+            }
         }
     }
 
     up() { this.position.set(this.x, this.y - this.speed); } 
+    
+    shootDown() {
+        if (this.y >= POINTS.BOTTOM) {
+            this.isDead = true;
+        } else {
+            const isCollision = this.isCollision();
+            
+            if (!isCollision) {
+                this.down();
+            }
+        }
+    
+    }
+
+    down() { this.position.set(this.x, this.y + this.speed); } 
 
     isCollision() {
         let isCollision = false;
+        let bangX = false;
+        let bangY = false;
+
         for (const obj of this.parent.children) {
-            let bangY = obj.y + obj.height / 2 >= this.y;
-            let bangX = this.x >= (obj.x - obj.width / 2) &&
+            if (obj?.isGameObject && obj != this.shootingObject) {
+                bangY = obj.y + obj.height / 2 >= this.y;
+                bangX = this.x >= (obj.x - obj.width / 2) &&
                         this.x <= (obj.x + obj.width / 2);
-                        
-            if (obj?.isAsteroid && bangY && bangX) {
-                isCollision = true;
-                obj.setIsDestroyed(true).then(() => this.isDead = true);
-                break;
+
+                if (bangY && bangX) {
+                    obj?.setIsDestroyed(true);
+                    this.isDead = true;
+                }
             }
         }
 

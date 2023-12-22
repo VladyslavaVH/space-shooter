@@ -6,9 +6,9 @@ export default class Asteroid extends GameObject {
         super({ x });
         this.texture = Texture.from('../assets/images/asteroid.png');
         this.speed = 5;
-        this.isAsteroid = true;
-        this.isDestroyed = false;
         this.isMissed = null;
+        this.anchor.x = 0.5;
+        this.anchor.y = 1;
     }
 
     fall() {
@@ -23,16 +23,6 @@ export default class Asteroid extends GameObject {
                 this.moveDown();
             }
         }, 100);
-    }
-
-    setIsDestroyed(boolean) {
-        if (boolean == 1 || boolean == 0) {
-            this.isDestroyed = boolean;
-        }
-
-        return new Promise(function(resolve, reject) {
-            resolve(true);
-        });
     }
 
     setIsMissed(boolean) {

@@ -3,68 +3,48 @@ import { baseTextStyle } from "./utils";
 import CountDown from "./countDown";
 
 export default class UI {
-    constructor(component) {
-        this.component = component;
-    }
-
-    setBackground() {
+    getBackground(width, height) {
         const bgTexture = Texture.from('../assets/images/galaxy_bg.png');
-        const bg = TilingSprite.from(
-            bgTexture, { 
-                width: this.component.view.width, 
-                height: this.component.view.height 
-            }
-        );
-        this.component.draw(bg);
+        return TilingSprite.from(bgTexture, { width, height });
     }
 
-    createBulletsText() {
+    createBulletsText(x, y) {
         const bulletsText = new Text('bullets: 0 / 10');
-        bulletsText.x = 25;
-        bulletsText.y = 10;
+        bulletsText.x = x;
+        bulletsText.y = y;
         bulletsText.style = baseTextStyle;
-        this.component.draw(bulletsText);
-        this.component.stage.setChildIndex(bulletsText, 1);
         return bulletsText;
     }
 
-    createBigMessage() {
+    createBigMessage(x, y) {
         const bigMessage = new Text('YOU WIN');
         bigMessage.anchor.set(0.5);
-        bigMessage.x = this.component.renderer.width / 2;
-        bigMessage.y = this.component.renderer.height / 2;
+        bigMessage.x = x;
+        bigMessage.y = y;
         bigMessage.style = new TextStyle({
             fill: 'transparent',
             fontSize: 150,
             fontFamily: 'Rational Integer'
         });
-        this.component.draw(bigMessage);
-        this.component.stage.setChildIndex(bigMessage, 2);
         return bigMessage;
     }
 
-    createCountDown() {
-        const countDown = new CountDown(60);
-        countDown.x = 1280 - countDown.width - 36;
-        countDown.y = 10;
-        this.component.draw(countDown);
+    createCountDown(x, y, seconds) {
+        const countDown = new CountDown(seconds);
+        countDown.x = x;
+        countDown.y = y;
         return countDown;
     }
 
-    createButton() {
+    createButton(x, y) {
         const button = new Container();
+        button.pivot.set(80, 20);
 
         //border
         let border = new Graphics();
         border.beginFill('transparent');
         border.lineStyle(2, '#004e8c');
-        border.drawRoundedRect(
-            this.component.stage.width / 2 - 80,
-            this.component.stage.height - 60,
-            160,
-            40,
-            30
-        );
+        border.drawRoundedRect(0, 0, 160, 40, 30);
         border.endFill();
         button.addChild(border);
 
@@ -76,16 +56,14 @@ export default class UI {
             fontSize: 18,
             fontFamily: 'Rational Integer'
         });
-        buttnText.x = this.component.stage.width / 2;
-        buttnText.y = this.component.stage.height - 40;
+        buttnText.x = buttnText.width / 2 + 15;
+        buttnText.y = button.height / 2;
         button.addChild(buttnText);
 
         button.eventMode = 'static';
         button.buttonMode = true;
         button.cursor = 'pointer';
-        button.on('pointerdown', e => this.component.startGame(e));
-
-        this.component.draw(button);
+        button.position.set(x, y);
 
         return button;
     }

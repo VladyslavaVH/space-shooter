@@ -1,5 +1,5 @@
 import { Application } from "pixi.js";
-import { KEYS } from "./utils";
+import { KEYS, getRandomInRange } from "./utils";
 import UI from "./ui";
 import Asteroid from "./asteroid";
 
@@ -14,7 +14,7 @@ export default class Game extends Application {
         this.currentKeys = {};
         this.onSpace = null;
         this.onReset = null;
-        this.ui = new UI(this);
+        this.ui = new UI();
 
         this.init();
 
@@ -23,15 +23,28 @@ export default class Game extends Application {
         this.maxBullets = 10;
         this.countDestroyedAsteroids = 0;
         this.isOver = false;
+
+        this.bossExists = false;
+        this.isLevel2 = false;
+        this.isGame = false;
     }
     
     init() {
-        this.ui.setBackground();
+        this.bg = this.ui.getBackground(this.view.width, this.view.height);
+        this.draw(this.bg);
 
-        this.bulletsText = this.ui.createBulletsText();
-        this.bigMessage = this.ui.createBigMessage();
-        this.countDown = this.ui.createCountDown();
-        this.button = this.ui.createButton();
+        this.bulletsText = this.ui.createBulletsText(25, 10);
+        this.draw(this.bulletsText);
+
+        this.bigMessage = this.ui.createBigMessage(this.renderer.width / 2, this.renderer.height / 2);
+        this.draw(this.bigMessage);
+
+        this.countDown = this.ui.createCountDown(this.renderer.width - 65, 10, 60);
+        this.draw(this.countDown);
+
+        this.button = this.ui.createButton(this.stage.width / 2, this.stage.height - 35);
+        this.button.on('pointerdown', () => this.startGame());
+        this.draw(this.button);
 
         window.addEventListener('keydown', e => this.keysDown(e));
         window.addEventListener('keyup', e => this.keysUp(e));
@@ -49,18 +62,19 @@ export default class Game extends Application {
         this.bigMessage.style.fill = '#fe015b';
     }
 
-    startGame(e) {
-        e.target.visible = false;
-        e.target.useMode = 'none';
+    startGame() {
+        this.button.visible = false;
+        this.button.eventMode = 'none';
+        this.isGame = true;
         this.countDown.start();
 
         this.interval = setInterval(() => {
-            const asteroid = new Asteroid(this.getRandomInRange(75, 1200));
+            const asteroid = new Asteroid(getRandomInRange(75, 1200));
             this.asteroids.push(asteroid);
             this.draw(asteroid);
             asteroid.fall();
             this.currentCountAsteroids++;
-        }, this.getRandomInRange(1000, 6000));
+        }, getRandomInRange(1000, 6000));
     }
 
     updateAsteroids() {
@@ -86,12 +100,13 @@ export default class Game extends Application {
     }
 
     setYouLose() {
+        this.isGame = false;
         this.reset();
 
         this.setBigMessage('YOU LOSE');
-        this.button.useMode = 'dinamic';
         this.button.visible = true;
-        this.button.on('pointerdown', e => this.startNewGame(e));
+        this.button.eventMode = 'static';
+        this.button.on('pointerdown', () => this.startNewGame());
     }
 
     reset() {
@@ -105,20 +120,39 @@ export default class Game extends Application {
             this.erase(asteroid);
         }
         this.asteroids = [];
+
     }
 
-    startNewGame(e) {
-        e.target.visible = false;
-        e.target.useMode = 'none';
+    startNewGame() {
         this.currentCountAsteroids = 0;
         this.countDestroyedAsteroids = 0;
         this.countDown.reset();
         this.bigMessage.style.fill = 'transparent';
         this.onReset();
         this.start();
+        this.button.visible = false;
+        this.button.eventMode = 'none';
     }
 
-    setYouWin() { this.setBigMessage('YOU WIN'); }
+    startLevel2() {
+        this.setBigMessage('LEVEL 2');
+        this.tmpTimeout = setTimeout(() => {
+            this.bigMessage.style.fill = 'transparent';
+            clearTimeout(this.tmpTimeout);
+        }, 1000);
+
+        this.countDown.reset();
+        this.setBulletsText(`bullets: 0 / ${this.maxBullets}`);
+        this.button.visible = false;
+        this.button.eventMode = 'none';
+
+        this.isLevel2 = true;
+    }
+
+    setYouWin() { 
+        this.setBigMessage('YOU WIN');
+        this.countDown.stop();
+    }
 
     draw(child) { child && this.stage.addChild(child); }
 
@@ -127,12 +161,10 @@ export default class Game extends Application {
     keysDown(e) {
         this.currentKeys[e.keyCode] = true;
     
-        if (this.currentKeys[KEYS.SPACE] && this.onSpace) {
+        if (this.currentKeys[KEYS.SPACE] && this.onSpace && this.isGame) {
             this.onSpace();
         }
     }
     
     keysUp(e) { this.currentKeys[e.keyCode] = false; }
-    
-    getRandomInRange(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
 };
