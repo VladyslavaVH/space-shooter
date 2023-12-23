@@ -14,7 +14,7 @@ body {
     overflow: hidden;
     display: flex;
     justify-content: center;
-    /* align-items: center; */
+    align-items: center;
     font-family: "Rational Integer";
     font-size: 0;
 }

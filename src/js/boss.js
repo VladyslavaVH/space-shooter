@@ -1,6 +1,6 @@
 import { Container, Graphics, Texture } from 'pixi.js';
-import { POINTS, getRandomInRange } from './utils';
-import ShootingObject from './shootingObject';
+import { POINTS, getRandomInRange } from './utils/utils';
+import ShootingObject from './baseObjects/shootingObject';
 
 export default class Boss extends ShootingObject {
     constructor() {
@@ -12,26 +12,18 @@ export default class Boss extends ShootingObject {
         
         this.hitPoints = 4;
         this.isBoss = true;
+        this.maxBullets = 10000;
 
         this.speed = 1;
-        this.randomX = 900;
+        this.randomX = getRandomInRange(300, 1000);
         this.randomStop = false;
 
         this.shootsUp = false;
+
+        this.init();
     }
 
-    attack() {
-        if (!this.interval && !this.stopInterval) {
-            this.interval = setInterval(() => this.fireBullet(), 2000);
-            this.stopInterval = setInterval(() => this.randomStop = !this.randomStop ? true : false, 3000);
-        }
-
-        this.updateBullets();
-        this.randomMoving();
-        this.updateHealthBar();
-    }
-
-    getHealthBar() {
+    init() {
         const healthBar = new Container();
         healthBar.pivot.set(50, 5);
 
@@ -50,18 +42,29 @@ export default class Boss extends ShootingObject {
         healthBar.position.set(this.x, 50);
 
         this.healthBar = healthBar;
+    }
 
-        return healthBar;
+    attack() {
+        if (!this.interval && !this.stopInterval) {
+            this.interval = setInterval(() => this.fireBullet(), 2000);
+            this.stopInterval = setInterval(() => this.randomStop = !this.randomStop ? true : false, 3000);
+        }
+
+        this.updateBullets();
+        this.randomMoving();
+        this.updateHealthBar();
     }
 
     updateHealthBar() {
-        this.healthBar.x = this.x;
-
-        if (this.isDestroyed) {
-            this.decrementHitPoints();
-            this.setIsDestroyed(false);
+        if (this.healthBar) {
+            this.healthBar.x = this.x;
+    
+            if (this.isDestroyed) {
+                this.decrementHitPoints();
+                this.setIsDestroyed(false);
+            }
+            this.healthBar.children[1].width = this.hitPoints * 25;
         }
-        this.healthBar.children[1].width = this.hitPoints * 25;
     }
 
     decrementHitPoints() {

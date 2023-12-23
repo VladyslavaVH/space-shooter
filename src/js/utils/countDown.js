@@ -17,7 +17,6 @@ export default class CountDown extends Text {
             if (this.currentTime != 0) {
                 this.currentTime -= 1;
             } else {
-                console.log('The end');
                 clearInterval(this.interval);
             }
             this.text = this.currentTime;

@@ -1,18 +1,17 @@
-import { Application } from "pixi.js";
-import { KEYS, getRandomInRange } from "./utils";
-import UI from "./ui";
-import Asteroid from "./asteroid";
+import { Application } from 'pixi.js';
+import { POINTS, getRandomInRange } from './utils/utils';
+import UI from './utils/ui';
+import Asteroid from './asteroid';
+import Boss from './boss';
 
 export default class Game extends Application {
     constructor() {
         super({
-            width: 1280,
-            height: 720
+            width: POINTS.RIGHT,
+            height: POINTS.BOTTOM
         });
         document.body.appendChild(this.view);
 
-        this.currentKeys = {};
-        this.onSpace = null;
         this.onReset = null;
         this.ui = new UI();
 
@@ -22,11 +21,14 @@ export default class Game extends Application {
         this.currentCountAsteroids = 0;
         this.maxBullets = 10;
         this.countDestroyedAsteroids = 0;
-        this.isOver = false;
-
-        this.bossExists = false;
-        this.isLevel2 = false;
+        
         this.isGame = false;
+        this.isOver = false;
+        
+        this.level = 1;
+        this.maxLevel = 2;
+
+        this.boss = null;
     }
     
     init() {
@@ -42,34 +44,30 @@ export default class Game extends Application {
         this.countDown = this.ui.createCountDown(this.renderer.width - 65, 10, 60);
         this.draw(this.countDown);
 
-        this.button = this.ui.createButton(this.stage.width / 2, this.stage.height - 35);
-        this.button.on('pointerdown', () => this.startGame());
+        this.button = this.ui.createButton(this.stage.width / 2, this.stage.height - 45);
+        this.button.on('pointerdown', () => this.onStartNewGame());
         this.draw(this.button);
-
-        window.addEventListener('keydown', e => this.keysDown(e));
-        window.addEventListener('keyup', e => this.keysUp(e));
-
     }
 
-    getCurrentKeys() { return this.currentKeys; }
+    onStartNewGame() {
+        this.enableButton(false);
 
-    setBulletsText(newText) {
-        this.bulletsText.text = newText;
-    }
+        if (!this.isGame && this.isOver) {
+            this.resetCurrentLevel();
+        }
 
-    setBigMessage(newMessage) {
-        this.bigMessage.text = newMessage;
-        this.bigMessage.style.fill = '#fe015b';
+        if (this.level === 1) {
+            this.startGame();
+        } 
     }
 
     startGame() {
-        this.button.visible = false;
-        this.button.eventMode = 'none';
         this.isGame = true;
+        this.isOver = false;
         this.countDown.start();
 
         this.interval = setInterval(() => {
-            const asteroid = new Asteroid(getRandomInRange(75, 1200));
+            const asteroid = new Asteroid(getRandomInRange(POINTS.LEFT + 80, POINTS.RIGHT - 80));
             this.asteroids.push(asteroid);
             this.draw(asteroid);
             asteroid.fall();
@@ -99,72 +97,143 @@ export default class Game extends Application {
         }
     }
 
-    setYouLose() {
-        this.isGame = false;
-        this.reset();
-
-        this.setBigMessage('YOU LOSE');
-        this.button.visible = true;
-        this.button.eventMode = 'static';
-        this.button.on('pointerdown', () => this.startNewGame());
-    }
-
-    reset() {
-        this.countDown.stop();
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
-
-        for (const asteroid of this.asteroids) {
-            this.erase(asteroid);
-        }
-        this.asteroids = [];
-
-    }
-
-    startNewGame() {
-        this.currentCountAsteroids = 0;
-        this.countDestroyedAsteroids = 0;
+    resetCurrentLevel() {
         this.countDown.reset();
         this.bigMessage.style.fill = 'transparent';
         this.onReset();
-        this.start();
-        this.button.visible = false;
-        this.button.eventMode = 'none';
+        this.isGame = true;
+        this.isOver = false;
     }
 
-    startLevel2() {
-        this.setBigMessage('LEVEL 2');
-        this.tmpTimeout = setTimeout(() => {
-            this.bigMessage.style.fill = 'transparent';
-            clearTimeout(this.tmpTimeout);
-        }, 1000);
+    nextLevel() {
+        this.onReset();
+
+        this.setBigMessage(`LEVEL ${this.level}`);
+        this.setBulletsText(`bullets: 0 / ${this.maxBullets}`);
 
         this.countDown.reset();
-        this.setBulletsText(`bullets: 0 / ${this.maxBullets}`);
-        this.button.visible = false;
-        this.button.eventMode = 'none';
 
-        this.isLevel2 = true;
+        this.enableButton(false);
+
+        this.isGame = true;
+        this.isOver = false;
+    }
+
+    updateLevels() {
+        switch (this.level) {
+            case 1:
+                this.updateAsteroids();
+                if (this.countDown.getCurrentTime() >= 0) {
+                    if (this.countDestroyedAsteroids == this.maxBullets) {
+                        this.currentCountAsteroids = 0;
+                        this.countDestroyedAsteroids = 0;
+                        this.isGame = false;
+                        this.level++;
+                    }
+                }
+
+                if (this.countDown.getCurrentTime() == 0 && 
+                    this.countDestroyedAsteroids < this.maxBullets && 
+                    !this.isOver) {
+                    this.setYouLose();
+                    this.currentCountAsteroids = 0;
+                    this.countDestroyedAsteroids = 0;
+                }
+
+                break;
+            
+            case 2: 
+                if (!this.isGame) {
+                    this.nextLevel();
+                }
+
+                if (!this.boss) {
+                    this.boss = new Boss();
+
+                    this.level2Timeout = setTimeout(() => {
+                        this.bigMessage.style.fill = 'transparent'; 
+
+                        this.draw(this.boss);
+                        this.draw(this.boss.healthBar);
+                    }, 1000);
+                } else {
+                    if (this.boss.hitPoints === 0) {
+                        this.setYouWin();
+                        this.eraseBoss();
+                    } else {
+                        this.boss.attack();
+                    }
+                }
+
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    setBulletsText(newText) {
+        this.bulletsText.text = newText;
+    }
+
+    setBigMessage(newMessage) {
+        this.bigMessage.text = newMessage;
+        this.bigMessage.style.fill = '#fe015b';
     }
 
     setYouWin() { 
         this.setBigMessage('YOU WIN');
         this.countDown.stop();
+        this.level != this.maxLevel ? this.level++ : this.level = 1;
+        this.isGame = false;
+        this.isOver = true;
+        this.enableButton(true);
+    }
+
+    setYouLose() {
+        this.isGame = false;
+        this.isOver = true;
+
+        if (this.level === 2 && this.boss) {
+            this.eraseBoss();
+        } else if (this.level === 1) {
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+    
+            for (const asteroid of this.asteroids) {
+                this.erase(asteroid);
+            }
+            this.asteroids = [];
+        }
+
+        this.level = 1;
+        this.countDown.stop();
+        
+        this.setBigMessage('YOU LOSE');
+        this.enableButton(true);
+    }
+
+    enableButton(isEnable) {
+        if (isEnable) {
+            this.button.visible = true;
+            this.button.eventMode = 'static';
+        } else {
+            this.button.visible = false;
+            this.button.eventMode = 'none';
+        }
     }
 
     draw(child) { child && this.stage.addChild(child); }
 
     erase(child) { child && this.stage.removeChild(child); }
 
-    keysDown(e) {
-        this.currentKeys[e.keyCode] = true;
-    
-        if (this.currentKeys[KEYS.SPACE] && this.onSpace && this.isGame) {
-            this.onSpace();
-        }
+    eraseBoss() {
+        this.boss.clearIntervals();
+        this.boss.resetBullets();
+        this.erase(this.boss.healthBar);
+        this.erase(this.boss);
+        this.boss = null;
     }
-    
-    keysUp(e) { this.currentKeys[e.keyCode] = false; }
 };

@@ -1,5 +1,6 @@
-import { Texture } from "pixi.js";
-import GameObject from "./gameObject";
+import { Texture } from 'pixi.js';
+import { POINTS } from './utils/utils';
+import GameObject from './baseObjects/gameObject';
 
 export default class Asteroid extends GameObject {
     constructor(x) {
@@ -7,13 +8,13 @@ export default class Asteroid extends GameObject {
         this.texture = Texture.from('../assets/images/asteroid.png');
         this.speed = 5;
         this.isMissed = null;
-        this.anchor.x = 0.5;
-        this.anchor.y = 1;
+        this.anchor.set(0.5, 1);
+        this.zIndex = 0;
     }
 
     fall() {
         this.interval = setInterval(() =>{
-            if (this.y - this.height / 2 > 720 || this.parent?.isOver) {
+            if (this.y >= POINTS.BOTTOM || this.parent?.isOver) {
                 if (!this?.isDestroyed && !this.parent?.isOver) {
                     this.isMissed = true;
                 } 
@@ -25,9 +26,9 @@ export default class Asteroid extends GameObject {
         }, 100);
     }
 
-    setIsMissed(boolean) {
-        if (boolean == 1 || boolean == 0) {
-            this.isMissed = boolean;
+    setIsMissed(isMissed) {
+        if (isMissed == 1 || isMissed == 0) {
+            this.isMissed = isMissed;
         }
     }
     

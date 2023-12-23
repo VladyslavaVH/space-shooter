@@ -1,5 +1,5 @@
-import Bullet from "./bullet";
-import GameObject from "./gameObject";
+import Bullet from '../bullet';
+import GameObject from './gameObject';
 
 export default class ShootingObject extends GameObject {
     constructor(props) {
@@ -22,7 +22,7 @@ export default class ShootingObject extends GameObject {
     }
 
     createBullet() {
-        let bullet = new Bullet(this.x, this.y, this.bulletSpeed);
+        let bullet = new Bullet(this.x, this.y, this.bulletSpeed, this.shootsUp);
         bullet.setShootingObject(this);
         this.parent.addChild(bullet);
 
@@ -32,7 +32,7 @@ export default class ShootingObject extends GameObject {
     updateBullets() {
         for (const i in this.bullets) {
             const bullet = this.bullets[i];
-            this.shootsUp ? bullet.shootUp() : bullet.shootDown();
+            bullet.shoot();
 
             if (bullet.isDead) {
                this.parent.removeChild(bullet);

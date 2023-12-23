@@ -13,6 +13,7 @@ export default class UI {
         bulletsText.x = x;
         bulletsText.y = y;
         bulletsText.style = baseTextStyle;
+        bulletsText.zIndex = 1;
         return bulletsText;
     }
 
@@ -33,6 +34,7 @@ export default class UI {
         const countDown = new CountDown(seconds);
         countDown.x = x;
         countDown.y = y;
+        countDown.zIndex = 1;
         return countDown;
     }
 
@@ -60,6 +62,7 @@ export default class UI {
         buttnText.y = button.height / 2;
         button.addChild(buttnText);
 
+        button.zIndex = 1;
         button.eventMode = 'static';
         button.buttonMode = true;
         button.cursor = 'pointer';

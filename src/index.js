@@ -1,71 +1,48 @@
-import { KEYS } from './js/utils';
+import { KEYS } from './js/utils/utils';
 import Game from './js/game';
 import Rocket from './js/rocket';
-import Boss from './js/boss';
 
-const game = new Game();
+const currentKeys = {};
+window.onload = function () {
+    const game = new Game();
 
-const rocket = new Rocket();
-game.onSpace = () => rocket.fireBullet();
-game.onReset = () => rocket.resetBullets();
-game.draw(rocket);
+    const rocket = new Rocket();
+    game.onReset = () => rocket.resetBullets();
+    game.draw(rocket);
 
-let boss = new Boss();
+    game.ticker.add(gameLoop);
 
-// Game Loop
-game.ticker.add(() => {
-    const currentKeys = game.getCurrentKeys();
-
-    if (currentKeys[KEYS.LEFT]) {
-        rocket.moveLeft();
-    } else if (currentKeys[KEYS.RIGHT]) {
-        rocket.moveRight();
-    } 
-
-    rocket.updateBullets();
-    game.setBulletsText(`bullets: ${rocket.shoots} / ${rocket.maxBullets}`);
-
-    game.updateAsteroids();
-
-    const time = game.countDown.getCurrentTime();
-    if (time >= 0) {
-        if (game.countDestroyedAsteroids == game.maxBullets) {
-            //game.setYouWin();
-            game.startLevel2();
-            rocket.resetBullets();
+    function gameLoop() {
+        if (currentKeys[KEYS.LEFT]) {
+            rocket.moveLeft();
+        } else if (currentKeys[KEYS.RIGHT]) {
+            rocket.moveRight();
+        } 
+        
+        rocket.updateBullets();
+        game.setBulletsText(`bullets: ${rocket.shoots} / ${rocket.maxBullets}`);
+        
+        if ((rocket.isCollision() || rocket.isDestroyed) && !game.isOver && game.isGame) {
+            game.setYouLose();
+        
+            rocket.setIsDestroyed(false);
         }
+        
+        game.updateLevels();
     }
 
-    if (game.isLevel2) {
-        if (!game.bossExists) {
-            game.draw(boss);
-            game.draw(boss.getHealthBar());
-            game.bossExists = true;
-        } else {
-            if (boss.hitPoints === 0) {
-                game.setYouWin();
-                eraseBoss(boss, game);
-            } else {
-                boss.attack();
+    window.addEventListener('keydown', keysDown);
+    window.addEventListener('keyup', keysUp);
+
+    function keysDown(e) {
+        currentKeys[e.keyCode] = true;
+
+        if (currentKeys[KEYS.SPACE] && game.isGame) {
+            if (rocket) {
+                rocket.fireBullet();
             }
         }
     }
 
-    if (rocket.isCollision() || 
-       (time == 0 && game.countDestroyedAsteroids < game.maxBullets)
-       || rocket.isDestroyed) {
-        game.setYouLose();
-
-        if (game.isLevel2 && game.bossExists) {
-            eraseBoss(boss, game);
-        }
-    }
-});
-
-function eraseBoss(boss, game) {
-    boss.clearIntervals();
-    boss.resetBullets();
-    game.erase(boss.healthBar);
-    game.erase(boss);
+    function keysUp(e) { currentKeys[e.keyCode] = false; }
 }
- 

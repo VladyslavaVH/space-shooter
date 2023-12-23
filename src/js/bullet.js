@@ -1,10 +1,11 @@
-import { Graphics } from "pixi.js";
-import { POINTS } from "./utils";
+import { Graphics } from 'pixi.js';
+import { POINTS } from './utils/utils';
 
 export default class Bullet extends Graphics {
-    constructor(x, y, speed = 15) {
+    constructor(x, y, speed = 15, shootsUp = true) {
         super();
         this.speed = speed;
+        this.shootsUp = shootsUp;
         this.shootingObject = null;
 
         this.beginFill('#fcfedb');
@@ -25,32 +26,25 @@ export default class Bullet extends Graphics {
         }
     }
 
-    shootUp() {
-        if (this.y <= 0) {
-            this.isDead = true;
-        } else {
-            const isCollision = this.isCollision();
-            
-            if (!isCollision) {
+    shoot() {
+        const isCollision = this.isCollision();
+
+        if (this.shootsUp) {
+            if (this.y <= 0) {
+                this.isDead = true;
+            } else if (!isCollision) {
                 this.up();
+            }
+        } else {
+            if (this.y >= POINTS.BOTTOM) {
+                this.isDead = true;
+            } else if (!isCollision) {
+                this.down();
             }
         }
     }
 
     up() { this.position.set(this.x, this.y - this.speed); } 
-    
-    shootDown() {
-        if (this.y >= POINTS.BOTTOM) {
-            this.isDead = true;
-        } else {
-            const isCollision = this.isCollision();
-            
-            if (!isCollision) {
-                this.down();
-            }
-        }
-    
-    }
 
     down() { this.position.set(this.x, this.y + this.speed); } 
 
@@ -58,10 +52,29 @@ export default class Bullet extends Graphics {
         let isCollision = false;
         let bangX = false;
         let bangY = false;
+        let h = 0;
+        let bulletH = this.height / 2;
 
         for (const obj of this.parent.children) {
             if (obj?.isGameObject && obj != this.shootingObject) {
-                bangY = obj.y + obj.height / 2 >= this.y;
+                switch (obj.anchor.y) {
+                    case 0.5:
+                        h = obj.height / 2;
+                        break;
+                    case 1:
+                        h = 0;
+                        break;
+                    default:
+                        h = obj.height;
+                        break;
+                }
+
+                if (this.shootsUp) {
+                    bangY = obj.y + h >= this.y - bulletH;
+                } else {
+                    bangY = obj.y - h <= this.y + bulletH;
+                }
+
                 bangX = this.x >= (obj.x - obj.width / 2) &&
                         this.x <= (obj.x + obj.width / 2);
 
