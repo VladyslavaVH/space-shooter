@@ -29,7 +29,7 @@ Each level has:
 | Key | Action |
 |---|---|
 | Arrow keys | Move the spaceship |
-| Enter / Return | Shoot |
+| Space | Shoot |
 
 ## Tech Stack
 
