@@ -8,7 +8,7 @@ export default class Rocket extends ShootingObject {
             x: POINTS.RIGHT / 2, 
             y: POINTS.BOTTOM - 260
         });
-        this.texture = Texture.from('../assets/images/rocket.png');
+        this.texture = Texture.from('./assets/images/rocket.png');
         this.anchor.set(0.5, 0);
     }
 

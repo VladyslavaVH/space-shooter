@@ -8,7 +8,7 @@ export default class Boss extends ShootingObject {
             x: POINTS.RIGHT / 2,
             y: POINTS.TOP + 200
         });
-        this.texture = Texture.from('../assets/images/boss_spaceship.png');
+        this.texture = Texture.from('./assets/images/boss_spaceship.png');
         
         this.hitPoints = 4;
         this.isBoss = true;

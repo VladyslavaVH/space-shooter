@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "start": "webpack serve"
+    "start": "webpack serve",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "Vladyslava Holovan",
@@ -15,6 +16,7 @@
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
+    "gh-pages": "^6.3.0",
     "html-webpack-plugin": "^5.5.4",
     "style-loader": "^3.3.3",
     "webpack": "^5.89.0",
