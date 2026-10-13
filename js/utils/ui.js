@@ -4,7 +4,7 @@ import CountDown from "./countDown";
 
 export default class UI {
     getBackground(width, height) {
-        const bgTexture = Texture.from('../assets/images/galaxy_bg.png');
+        const bgTexture = Texture.from('./assets/images/galaxy_bg.png');
         return TilingSprite.from(bgTexture, { width, height });
     }
 

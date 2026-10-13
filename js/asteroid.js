@@ -5,7 +5,7 @@ import GameObject from './baseObjects/gameObject';
 export default class Asteroid extends GameObject {
     constructor(x) {
         super({ x });
-        this.texture = Texture.from('../assets/images/asteroid.png');
+        this.texture = Texture.from('./assets/images/asteroid.png');
         this.speed = 5;
         this.isMissed = null;
         this.anchor.set(0.5, 1);
